@@ -9,8 +9,9 @@
 #define STASSID "SimInput"
 #define STAPSK  "12345678"
 
-#define LEFT_PADDLE_PIN 14
-#define RIGHT_PADDLE_PIN 12
+#define RIGHT_PADDLE_PIN 11
+#define LEFT_PADDLE_PIN 7
+#define HORN_PIN 9
 
 WiFiUDP Udp;
 
@@ -49,6 +50,7 @@ void setup() {
   packet[0] = 'B';
   pinMode(LEFT_PADDLE_PIN, INPUT_PULLUP);
   pinMode(RIGHT_PADDLE_PIN, INPUT_PULLUP);
+  pinMode(HORN_PIN, INPUT_PULLUP);
 }
 
 void loop() {
