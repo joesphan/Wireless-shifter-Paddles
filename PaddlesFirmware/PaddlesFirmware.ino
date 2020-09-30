@@ -12,12 +12,13 @@
 #define RIGHT_PADDLE_PIN 11
 #define LEFT_PADDLE_PIN 7
 #define HORN_PIN 9
-#define ACTIVE_PIN 10
 
 #define TIMEOUT 600000    //10 minutes
+#define PORT 4210
+#define IP 192, 168, 4, 1
 WiFiUDP Udp;
 
-IPAddress ip(192, 168, 4, 1);
+IPAddress ip(IP);
 
 const char* ssid     = STASSID;
 const char* password = STAPSK;
@@ -27,9 +28,7 @@ byte packet[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 int stopTime;
 
 void setup() {
-  stopTime = millis() + TIMEOUT;   //reset timer;
-  pinMode(ACTIVE_PIN, OUTPUT);    //disable reset
-  digitalWrite(ACTIVE_PIN, HIGH);
+  stopTime = millis() + TIMEOUT;   //reset sleep timer;
   
   pinMode(LEFT_PADDLE_PIN, INPUT_PULLUP);
   pinMode(RIGHT_PADDLE_PIN, INPUT_PULLUP);
@@ -40,7 +39,7 @@ void setup() {
 
   while (WiFi.status() != WL_CONNECTED) {
     if (millis() == stopTime) {   //sleep if not connected for a long time
-      ESP.deepSleep(0);
+      light_sleep();
     }
   }
 
@@ -54,7 +53,7 @@ void loop() {
     stopTime = millis() + TIMEOUT;   //reset timer;
   }
   if (millis() == stopTime) {   //sleep if not connected for a long time
-    ESP.deepSleep(0);
+    light_sleep();
   }
 }
 void readStates() {
@@ -64,7 +63,7 @@ void readStates() {
 }
 
 void sendPacket() {
-  Udp.beginPacket(ip, 4210);
+  Udp.beginPacket(ip, PORT);
   Udp.write(packet[0]);
   Udp.write(packet[1]);
   Udp.write(packet[2]);
@@ -78,3 +77,12 @@ void sendPacket() {
   */
   Udp.endPacket();
 }
+
+void light_sleep(){
+   wifi_station_disconnect();
+   wifi_set_opmode_current(NULL_MODE);
+   wifi_fpm_set_sleep_type(LIGHT_SLEEP_T);
+   wifi_fpm_open(); // Enables force sleep
+   gpio_pin_wakeup_enable(GPIO_ID_PIN(RIGHT_PADDLE_PIN), GPIO_PIN_INTR_LOLEVEL);
+   wifi_fpm_do_sleep(0xFFFFFFF);
+ }
